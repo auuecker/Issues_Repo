@@ -1,0 +1,107 @@
+---
+# - name:  Create temporary build directory
+#   tempfile:
+#     state: directory
+#   register: _build_dir
+#   check_mode: no
+#   run_once: true
+
+# - name: Generate BGP Peer Loopback Data (Spines/Leaves)
+#   import_role:
+#     name: build_bgp_peer_data
+#   check_mode: no
+#   run_once: true
+
+# - name: "Generate full junos config template for device"
+#   template:
+#     src: "junos_master.j2"
+#     dest: "{{ _build_dir.path }}/{{ inventory_hostname }}.conf"
+#   check_mode: no
+
+# uses 'update' option for pushing the full config.
+#
+# From the docs:
+#
+#   'update' is similar to the override option.
+#   The new configuration completely replaces the existing configuration.
+
+
+#   The difference comes when the configuration is later committed.
+#   This option performs a 'diff' between the new candidate configuration
+#   and the existing committed configuration. It then only notifies system
+#   processes responsible for the changed portions of the configuration,
+#   and only marks the actual configuration changes as 'changed'.
+#
+# https://github.com/ansible-collections/junipernetworks.junos/blob/main/docs/junipernetworks.junos.junos_config_module.rst
+#
+- name: Push full config to device and update
+  block:
+
+    - name: "Diff"
+      nxos_config:
+        diff_against: intended
+        intended_config: "{{ lookup('file', '~/dc_automation_test_harness/inventory/configs/NEP6DELAG101.txt') }}"
+      register: result
+      diff: true
+      vars:
+        ansible_command_timeout: 90
+
+    - name: "Deploy config file"
+      nxos_config:
+        diff_against: running
+        src: ~/dc_automation_test_harness/inventory/configs/NEP6DELAG101.txt
+      register: result
+      # diff: true
+      vars:
+        ansible_command_timeout: 90
+      check_mode: "{{ check }}"
+      ignore_errors: true
+
+    # - name: save config
+    #   cisco.nxos.nxos_config:
+    #     backup: yes
+    #     backup_options:
+    #       filename: "{{inventory_hostname}}_backup.cfg"
+    #       dir_path: inventory/configs
+
+    - name: debug results
+      debug:
+        var: result
+      delegate_to: localhost
+
+    # - name: "Deploy config file"
+    #   nxos_config:
+    #     lines:
+    #       - "{{item}}"
+    #     replace: block
+    #   register: result
+    #   # diff: true
+    #   vars:
+    #     ansible_command_timeout: 90
+    #   check_mode: "{{ check }}"
+    #   loop: "{{result.commands}}"
+    #   ignore_errors: true
+
+    # - name: debug results
+    #   debug:
+    #     var: result
+    #   delegate_to: localhost
+
+#     - name: "Remove device config file'"
+#       file:
+#         state: absent
+#         path:  "{{ _build_dir.path }}/{{ inventory_hostname }}.conf"
+#       when: cleanup == True
+
+#   rescue:
+#     - name: Fail play
+#       fail:
+#         msg: "Fail play because deployment of config: {{ _build_dir.path }}/{{ inventory_hostname }}.conf"
+
+# - name: "Cleanup temporary build directory"
+#   file:
+#     state: absent
+#     path: "{{ _build_dir.path }}"
+#   when: cleanup == True
+
+

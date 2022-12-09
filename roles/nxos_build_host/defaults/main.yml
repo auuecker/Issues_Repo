@@ -1,0 +1,20 @@
+################################################################################
+#
+#  These can be overwritten within the playbook if desired
+#
+################################################################################
+
+# Default template ver is 0
+# Default template source is with the role itself
+# role should always contain latest 'golden' template of what is in production
+# template_version: 0
+# # template_src: "{{ _role_name }}_{{ template_version }}.j2"
+
+
+# template_src: "{{ _role_name }}_{{ device_type }}_{{ template_version }}.j2"
+
+# By default, the generated config will be deployed to device
+deploy_config: True
+
+# By default, delete the temporary generated conf file
+cleanup: True

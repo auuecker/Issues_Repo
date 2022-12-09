@@ -1,0 +1,37 @@
+---
+- name: Check IT Fabric host(s) deployment config
+  hosts: all
+  gather_facts: no
+
+  # tasks:
+  # - name: Create host role grouping based on device OS (junos, nxos)
+  #   group_by: key={{ ansible_network_os }}
+
+# - name: Run JUNOS related roles
+#   hosts: junos
+#   gather_facts: no
+
+#   tasks:
+#   - name: Verify HostVar is Complete
+#     assert:
+#       that:
+#         - interfaces is defined
+#       fail_msg: "Hostvar file for {{ inventory_hostname }} not completed inventory"
+
+#   - name: Build JUNOS host
+#     include_role:
+#       name: junos_deploy_host_config
+#     vars:
+#       check: yes
+
+
+- name: Run NXOS related roles
+  hosts: all
+  gather_facts: no
+
+  tasks:
+  - name: Build NXOS host
+    include_role:
+      name: nxos_build_host
+    vars:
+      check: yes

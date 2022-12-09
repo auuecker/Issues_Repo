@@ -1,0 +1,4 @@
+{% for template in nxos %}
+{% set path = 'nxos/' + template + '.j2' %}
+{% include path %}
+{% endfor %}
